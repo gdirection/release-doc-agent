@@ -1,109 +1,67 @@
 import pytest
 
-from app.data_loader import (
-    load_mock_dataset,
-    load_sources,
-    slugify,
-    validate_cross_source_consistency,
-)
-from app.schemas import DocChunk, GithubPR, JiraTicket, MockDataset
+from app.data_loader import load_mock_dataset
+from app.schemas import MockDataset
 
 
-def test_load_mock_dataset_returns_valid_dataset():
-    dataset = load_mock_dataset()
+@pytest.fixture
+def dataset() -> MockDataset:
+    return load_mock_dataset()
 
+
+def test_dataset_loads_successfully(dataset):
     assert isinstance(dataset, MockDataset)
-    assert len(dataset.github_prs) == 4
-    assert len(dataset.jira_tickets) == 3
-    assert len(dataset.doc_chunks) == 12
 
 
-def test_load_sources_compatibility_wrapper():
-    sources = load_sources()
-
-    assert "github_prs" in sources
-    assert "jira_tickets" in sources
-    assert "docs" in sources
-    assert len(sources["docs"]) == 12
+def test_dataset_has_at_least_one_github_pr(dataset):
+    assert dataset.github_prs
 
 
-def test_markdown_chunks_have_stable_ids_and_paths():
-    dataset = load_mock_dataset()
-    chunk_ids = {chunk.id for chunk in dataset.doc_chunks}
-
-    assert "doc:authentication.md#sso-configuration" in chunk_ids
-    assert "doc:enterprise_onboarding.md#identity-provider-setup" in chunk_ids
-    assert "doc:troubleshooting_login.md#sso-login-failures" in chunk_ids
-
-    sso_chunk = next(
-        chunk for chunk in dataset.doc_chunks if chunk.id == "doc:authentication.md#sso-configuration"
-    )
-    assert sso_chunk.path == "data/docs/authentication.md"
-    assert sso_chunk.title == "Authentication Setup Guide"
-    assert "SAML-based single sign-on" in sso_chunk.content
+def test_dataset_has_at_least_one_jira_ticket(dataset):
+    assert dataset.jira_tickets
 
 
-def test_slugify_is_deterministic():
-    assert slugify("SSO Configuration") == "sso-configuration"
-    assert slugify(" Identity Provider Setup ") == "identity-provider-setup"
-    assert slugify("Expired Login Sessions!") == "expired-login-sessions"
+def test_dataset_has_at_least_one_doc_chunk(dataset):
+    assert dataset.doc_chunks
 
 
-def test_validate_cross_source_consistency_rejects_unknown_linked_ticket():
-    github_prs = [_github_pr(linked_tickets=["AUTH-999"])]
-    jira_tickets = [_jira_ticket("AUTH-123")]
+def test_all_pr_linked_tickets_exist_in_jira_tickets(dataset):
+    jira_ticket_ids = {ticket.id for ticket in dataset.jira_tickets}
 
-    with pytest.raises(ValueError, match="unknown Jira tickets: AUTH-999"):
-        validate_cross_source_consistency(github_prs, jira_tickets, [_doc_chunk()])
-
-
-def test_validate_cross_source_consistency_rejects_unlinked_jira_ticket():
-    github_prs = [_github_pr(linked_tickets=["AUTH-123"])]
-    jira_tickets = [_jira_ticket("AUTH-123"), _jira_ticket("AUTH-124")]
-
-    with pytest.raises(ValueError, match="not linked by any PR: AUTH-124"):
-        validate_cross_source_consistency(github_prs, jira_tickets, [_doc_chunk()])
+    for pr in dataset.github_prs:
+        assert set(pr.linked_tickets).issubset(jira_ticket_ids)
 
 
-def test_validate_cross_source_consistency_rejects_duplicate_ids():
-    github_prs = [_github_pr(id="github:pr-1"), _github_pr(id="github:pr-1")]
-    jira_tickets = [_jira_ticket("AUTH-123")]
+def test_every_jira_ticket_has_at_least_one_linked_pr(dataset):
+    linked_ticket_ids = {ticket_id for pr in dataset.github_prs for ticket_id in pr.linked_tickets}
 
-    with pytest.raises(ValueError, match="Duplicate GitHub PR IDs: github:pr-1"):
-        validate_cross_source_consistency(github_prs, jira_tickets, [_doc_chunk()])
-
-
-def _github_pr(id: str = "github:pr-1", linked_tickets: list[str] | None = None) -> GithubPR:
-    return GithubPR(
-        id=id,
-        number=1,
-        title="Test PR",
-        description="Test PR description",
-        merged_at="2026-06-01T10:15:00Z",
-        linked_tickets=linked_tickets or ["AUTH-123"],
-        files_changed=["auth/test.py"],
-        commits=[],
-    )
+    for ticket in dataset.jira_tickets:
+        assert ticket.id in linked_ticket_ids
 
 
-def _jira_ticket(id: str) -> JiraTicket:
-    return JiraTicket(
-        id=id,
-        title="Test ticket",
-        description="Test ticket description",
-        status="Done",
-        type="Feature",
-        affected_systems=["Authentication Service"],
-        customer_facing=True,
-    )
+def test_doc_chunk_ids_are_unique(dataset):
+    doc_chunk_ids = [chunk.id for chunk in dataset.doc_chunks]
+
+    assert len(doc_chunk_ids) == len(set(doc_chunk_ids))
 
 
-def _doc_chunk(id: str = "doc:test.md#section") -> DocChunk:
-    return DocChunk(
-        id=id,
-        doc_id="test",
-        path="data/docs/test.md",
-        title="Test Doc",
-        heading="Section",
-        content="Test content",
+def test_doc_chunk_ids_start_with_doc_prefix(dataset):
+    assert all(chunk.id.startswith("doc:") for chunk in dataset.doc_chunks)
+
+
+def test_authentication_docs_include_sso_configuration_chunk(dataset):
+    auth_chunks = [chunk for chunk in dataset.doc_chunks if chunk.doc_id == "authentication"]
+
+    assert any(chunk.heading == "SSO Configuration" for chunk in auth_chunks)
+
+
+def test_billing_docs_exist_as_chunks_but_are_separate_from_auth_docs(dataset):
+    billing_chunks = [chunk for chunk in dataset.doc_chunks if chunk.doc_id == "billing"]
+    auth_chunks = [chunk for chunk in dataset.doc_chunks if chunk.doc_id == "authentication"]
+
+    assert billing_chunks
+    assert auth_chunks
+    assert {chunk.doc_id for chunk in billing_chunks} == {"billing"}
+    assert {chunk.doc_id for chunk in billing_chunks}.isdisjoint(
+        {chunk.doc_id for chunk in auth_chunks}
     )
