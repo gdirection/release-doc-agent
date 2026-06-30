@@ -25,6 +25,13 @@ export default function EvidencePanel({ releasePackage, changes }) {
                 <h4>{change.id}</h4>
                 <p>{change.title}</p>
                 <span className={`risk ${change.risk_level}`}>{change.risk_level}</span>
+                <div className="chips">
+                  {change.source_ids.map((sourceId) => (
+                    <span className="chip" key={sourceId}>
+                      {sourceId}
+                    </span>
+                  ))}
+                </div>
               </article>
             ))}
           </div>

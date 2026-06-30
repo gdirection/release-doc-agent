@@ -15,9 +15,9 @@ const emptyResult = {
 };
 
 export default function App() {
-  const [result, setResult] = useState(emptyResult);
+  const [data, setData] = useState(emptyResult);
   const [releasePackage, setReleasePackage] = useState(null);
-  const [approvedResponse, setApprovedResponse] = useState(null);
+  const [approved, setApproved] = useState(null);
   const [loading, setLoading] = useState(false);
   const [approving, setApproving] = useState(false);
   const [error, setError] = useState("");
@@ -25,11 +25,11 @@ export default function App() {
   async function handleGenerate() {
     setLoading(true);
     setError("");
-    setApprovedResponse(null);
+    setApproved(null);
 
     try {
       const payload = await generateReleasePackage();
-      setResult(payload);
+      setData(payload);
       setReleasePackage(payload.release_package);
     } catch (err) {
       setError(err.message);
@@ -48,7 +48,7 @@ export default function App() {
 
     try {
       const payload = await approveReleasePackage(releasePackage);
-      setApprovedResponse(payload);
+      setApproved(payload);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -60,40 +60,40 @@ export default function App() {
     <main className="app-shell">
       <header className="topbar">
         <div>
-          <h1>Release Documentation Agent</h1>
+          <h1>Automated Release Documentation Agent</h1>
           <p>Okta SSO release package review</p>
         </div>
         <div className="actions">
           <button type="button" onClick={handleGenerate} disabled={loading}>
-            {loading ? "Generating..." : "Generate"}
+            {loading ? "Generating..." : "Generate Release Package"}
           </button>
           <button type="button" onClick={handleApprove} disabled={!releasePackage || approving}>
-            {approving ? "Approving..." : "Approve"}
+            {approving ? "Approving..." : "Approve Release Package"}
           </button>
         </div>
       </header>
 
       {error && <div className="banner error">{error}</div>}
-      {approvedResponse && (
-        <div className="banner success">Approved at {approvedResponse.approved_at}</div>
+      {approved && (
+        <div className="banner success">Approved at {approved.approved_at}</div>
       )}
 
       <section className="summary-strip">
-        <Metric label="Changes" value={result.changes.length} />
-        <Metric label="Retrieved Docs" value={result.retrieved_docs.length} />
+        <Metric label="Changes" value={data.changes.length} />
+        <Metric label="Retrieved Docs" value={data.retrieved_docs.length} />
         <Metric label="Doc Updates" value={releasePackage?.documentation_updates?.length ?? 0} />
-        <Metric label="Validation" value={result.validation_results.length} />
+        <Metric label="Validation" value={data.validation_results.length} />
       </section>
 
       <div className="layout">
         <ReleasePackageEditor releasePackage={releasePackage} onChange={setReleasePackage} />
         <aside className="side-panel">
-          <ValidationPanel validationResults={result.validation_results} />
-          <EvidencePanel releasePackage={releasePackage} changes={result.changes} />
+          <ValidationPanel validationResults={data.validation_results} />
+          <EvidencePanel releasePackage={releasePackage} changes={data.changes} />
         </aside>
       </div>
 
-      <RetrievedDocsPanel retrievedDocs={result.retrieved_docs} />
+      <RetrievedDocsPanel retrievedDocs={data.retrieved_docs} />
     </main>
   );
 }
