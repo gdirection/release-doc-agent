@@ -26,7 +26,7 @@ flowchart TD
     G --> H
 
     H --> I[Structured Release Package]
-    I --> J[Documentation Reviewer Agent]
+    I --> J[Documentation Review Step - passthrough]
     J --> K[Release Package + Doc Suggestions]
 
     K --> L[Validation Engine]
@@ -101,11 +101,13 @@ The prompt instructs the model to:
 - attach evidence IDs
 - return JSON only
 
-### Documentation Reviewer Agent
+### Documentation Review Step
 
-**Purpose:** Suggest documentation updates based on the generated release package and retrieved docs.
+**Purpose:** Provide a dedicated stage for reviewing and refining documentation update suggestions before validation.
 
-**Output:** impacted docs, suggested sections, reason, and evidence IDs.
+In this MVP, the documentation update suggestions (impacted docs, suggested sections, reason, and evidence IDs) are produced directly by the Release Writer Agent, which already has the change summaries and retrieved documentation chunks in context. The review step is currently a **passthrough**: it forwards the Release Writer's `documentationUpdates` unchanged so the pipeline shape (`generate → review → validate`) is explicit and ready for a dedicated reviewer.
+
+Keeping this as a distinct, swappable step means a future LLM-backed Documentation Reviewer Agent can be dropped in without changing the workflow or API — see Future Improvements.
 
 ## 3. Reliability Strategy
 
@@ -175,6 +177,7 @@ Release notes may be customer-facing, so the MVP requires human approval before 
 
 ## 6. Future Improvements
 
+- Dedicated LLM-backed Documentation Reviewer Agent (replace the current passthrough review step) to independently validate, correct, and expand the Release Writer's documentation suggestions
 - Real GitHub and Jira connectors
 - Confluence, Google Docs, Slack, Zendesk, and Linear integrations
 - Embedding-based retrieval and vector database support
