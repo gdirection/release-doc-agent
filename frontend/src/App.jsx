@@ -1,6 +1,7 @@
 import { useState } from "react";
 
-import { approveReleasePackage, generateReleasePackage } from "./api.js";
+import { approveReleasePackage, evaluateReleasePackage, generateReleasePackage } from "./api.js";
+import EvaluationPanel from "./components/EvaluationPanel.jsx";
 import EvidencePanel from "./components/EvidencePanel.jsx";
 import ReleasePackageEditor from "./components/ReleasePackageEditor.jsx";
 import RetrievedDocsPanel from "./components/RetrievedDocsPanel.jsx";
@@ -17,8 +18,10 @@ const emptyResult = {
 export default function App() {
   const [data, setData] = useState(emptyResult);
   const [releasePackage, setReleasePackage] = useState(null);
+  const [evaluation, setEvaluation] = useState(null);
   const [approved, setApproved] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [evaluating, setEvaluating] = useState(false);
   const [approving, setApproving] = useState(false);
   const [error, setError] = useState("");
 
@@ -26,6 +29,7 @@ export default function App() {
     setLoading(true);
     setError("");
     setApproved(null);
+    setEvaluation(null);
 
     try {
       const payload = await generateReleasePackage();
@@ -35,6 +39,20 @@ export default function App() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleEvaluate() {
+    setEvaluating(true);
+    setError("");
+
+    try {
+      const payload = await evaluateReleasePackage();
+      setEvaluation(payload.evaluation);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setEvaluating(false);
     }
   }
 
@@ -67,6 +85,9 @@ export default function App() {
           <button type="button" onClick={handleGenerate} disabled={loading}>
             {loading ? "Generating..." : "Generate Release Package"}
           </button>
+          <button type="button" onClick={handleEvaluate} disabled={evaluating}>
+            {evaluating ? "Evaluating..." : "Run Evaluation"}
+          </button>
           <button type="button" onClick={handleApprove} disabled={!releasePackage || approving}>
             {approving ? "Approving..." : "Approve Release Package"}
           </button>
@@ -89,6 +110,7 @@ export default function App() {
         <ReleasePackageEditor releasePackage={releasePackage} onChange={setReleasePackage} />
         <aside className="side-panel">
           <ValidationPanel validationResults={data.validation_results} />
+          <EvaluationPanel evaluation={evaluation} />
           <EvidencePanel releasePackage={releasePackage} changes={data.changes} />
         </aside>
       </div>

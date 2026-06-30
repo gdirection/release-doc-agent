@@ -12,6 +12,13 @@ export async function generateReleasePackage() {
   return parseJsonResponse(response);
 }
 
+export async function evaluateReleasePackage() {
+  const response = await fetch(`${API_BASE_URL}/api/evaluate`, {
+    method: "POST",
+  });
+  return parseJsonResponse(response);
+}
+
 export async function approveReleasePackage(releasePackage) {
   const response = await fetch(`${API_BASE_URL}/api/approve`, {
     method: "POST",
