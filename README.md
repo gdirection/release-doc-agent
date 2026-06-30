@@ -115,7 +115,7 @@ optional; the adapter is isolated behind the same LLM client interface.
 - The document retriever is deterministic local Markdown retrieval.
 - LLM output is parsed into structured Pydantic models.
 - Validation checks evidence references, Jira coverage, documentation references,
-  and customer-facing notes.
+  customer-facing notes, and required (non-empty) sections.
 - The UI supports review, editing internal/customer notes, and approval.
 
 ## Known Limitations

@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 
-from app.llm.gemini_client import GeminiClient
+from app.llm.gemini_client import DEFAULT_GEMINI_MODEL, GeminiClient
 from app.llm.mock_client import MockLLMClient
 
 
@@ -14,7 +14,8 @@ def create_llm_client():
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
             raise RuntimeError("GEMINI_API_KEY is required when LLM_PROVIDER=gemini")
-        return GeminiClient(api_key=api_key)
+        model = os.getenv("GEMINI_MODEL", DEFAULT_GEMINI_MODEL)
+        return GeminiClient(api_key=api_key, model=model)
     return MockLLMClient()
 
 
