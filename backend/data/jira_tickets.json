@@ -1,1 +1,44 @@
-[]
+[
+  {
+    "id": "AUTH-123",
+    "title": "Add Okta SSO support",
+    "description": "Add Okta support for SAML-based SSO so enterprise customers can authenticate through their existing identity provider.",
+    "status": "Done",
+    "type": "Feature",
+    "affected_systems": [
+      "Authentication Service",
+      "User Management"
+    ],
+    "customer_facing": true,
+    "acceptance_criteria": [
+      "Admins can configure Okta as an identity provider",
+      "Users can sign in through Okta SSO",
+      "SSO configuration errors are surfaced clearly"
+    ]
+  },
+  {
+    "id": "AUTH-124",
+    "title": "Add audit logging for SSO login events",
+    "description": "Record audit events for successful and failed SSO login attempts so internal teams can investigate authentication activity.",
+    "status": "Done",
+    "type": "Feature",
+    "affected_systems": [
+      "Authentication Service",
+      "Audit Logging"
+    ],
+    "customer_facing": false,
+    "acceptance_criteria": []
+  },
+  {
+    "id": "AUTH-125",
+    "title": "Improve SSO callback error handling",
+    "description": "Improve error handling for invalid SAML responses and expired SSO callback requests during enterprise SSO login.",
+    "status": "Done",
+    "type": "Bug",
+    "affected_systems": [
+      "Authentication Service"
+    ],
+    "customer_facing": true,
+    "acceptance_criteria": []
+  }
+]
