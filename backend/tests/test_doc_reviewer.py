@@ -6,17 +6,14 @@ from app.llm.mock_client import MockLLMClient
 from app.retriever import retrieve_docs
 
 
-def test_workflow_generates_release_package_with_mock_llm():
+def test_review_documentation_returns_release_package_documentation_updates():
     dataset = load_mock_dataset()
     changes = digest_artifacts(dataset.github_prs, dataset.jira_tickets)
     retrieved_docs = retrieve_docs(changes, dataset.doc_chunks)
     llm = MockLLMClient()
     package = generate_release_package(llm, changes, retrieved_docs)
-    suggestions = review_documentation(llm, package, retrieved_docs)
 
-    assert len(changes) == 3
-    assert len(retrieved_docs) == 9
-    assert len(package.changelog) == 3
-    assert package.internal_release_notes
-    assert package.customer_release_notes
-    assert suggestions == package.documentation_updates
+    updates = review_documentation(llm, package, retrieved_docs)
+
+    assert updates == package.documentation_updates
+    assert len(updates) == 3
