@@ -21,5 +21,6 @@ def test_workflow_generates_release_package_with_mock_llm():
     assert len(package.changelog) == 3
     assert package.internal_release_notes
     assert package.customer_release_notes
+    assert package.documentation_updates
     assert all(result.level != "error" for result in validation_results)
     assert suggestions == package.documentation_updates

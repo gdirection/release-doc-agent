@@ -47,14 +47,14 @@ def test_documentation_updates_referencing_non_retrieved_docs_are_caught():
 def test_missing_jira_coverage_is_caught():
     package, changes, retrieved_docs = _valid_workflow_output()
     package.changelog = [
-        item for item in package.changelog if "jira:AUTH-124" not in item.evidence_ids
+        item for item in package.changelog if "jira:AUTH-123" not in item.evidence_ids
     ]
     package.documentation_updates = [
         update
         for update in package.documentation_updates
-        if "jira:AUTH-124" not in update.evidence_ids
+        if "jira:AUTH-123" not in update.evidence_ids
     ]
-    package.evidence = [evidence_id for evidence_id in package.evidence if evidence_id != "jira:AUTH-124"]
+    package.evidence = [evidence_id for evidence_id in package.evidence if evidence_id != "jira:AUTH-123"]
 
     results = validate_release_package(package, changes, retrieved_docs)
 
