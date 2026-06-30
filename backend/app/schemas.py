@@ -96,6 +96,21 @@ class ValidationResult(BaseModel):
     message: str
 
 
+class MetricResult(BaseModel):
+    name: str
+    value: float
+    detail: str
+
+
+class EvaluationReport(BaseModel):
+    hallucination_rate: float
+    jira_coverage: float
+    doc_recommendation_precision: float
+    doc_recommendation_recall: float
+    doc_recommendation_f1: float
+    metrics: list[MetricResult]
+
+
 class ApprovalRequest(BaseModel):
     release_package: ReleasePackage
 

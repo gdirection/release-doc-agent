@@ -116,6 +116,9 @@ optional; the adapter is isolated behind the same LLM client interface.
 - LLM output is parsed into structured Pydantic models.
 - Validation checks evidence references, Jira coverage, documentation references,
   customer-facing notes, and required (non-empty) sections.
+- Evaluation reports hallucination rate, Jira coverage, and documentation
+  recommendation precision/recall/F1 against a locked ground-truth fixture
+  (`POST /api/evaluate`).
 - The UI supports review, editing internal/customer notes, and approval.
 
 ## Known Limitations
@@ -125,5 +128,5 @@ optional; the adapter is isolated behind the same LLM client interface.
 - No authentication.
 - No vector database.
 - No multi-user approval workflow.
-- Evaluation is lightweight and validation-based, not a full hallucination
-  benchmark.
+- Evaluation is lightweight and grounding/coverage-based against a small locked
+  ground-truth fixture, not a full semantic hallucination benchmark.

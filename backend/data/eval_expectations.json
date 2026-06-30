@@ -1,0 +1,8 @@
+{
+  "description": "Ground-truth labels for evaluating the locked Okta SSO release fixture. These are the documentation chunks a correct release package should recommend updating.",
+  "expected_doc_chunk_ids": [
+    "doc:authentication.md#sso-configuration",
+    "doc:enterprise_onboarding.md#identity-provider-setup",
+    "doc:troubleshooting_login.md#sso-login-failures"
+  ]
+}

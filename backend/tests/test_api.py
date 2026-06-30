@@ -29,6 +29,20 @@ def test_generate_endpoint_returns_full_workflow_output():
     assert all(result["level"] != "error" for result in payload["validation_results"])
 
 
+def test_evaluate_endpoint_returns_metrics():
+    response = client.post("/api/evaluate")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["release_package"]["changelog"]
+    evaluation = payload["evaluation"]
+    assert evaluation["hallucination_rate"] == 0.0
+    assert evaluation["jira_coverage"] == 1.0
+    assert evaluation["doc_recommendation_precision"] == 1.0
+    assert evaluation["doc_recommendation_recall"] == 1.0
+    assert len(evaluation["metrics"]) == 5
+
+
 def test_approve_endpoint_returns_approved_response():
     generated = client.post("/api/generate").json()
     release_package = generated["release_package"]
